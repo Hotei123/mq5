@@ -1,19 +1,23 @@
 //+------------------------------------------------------------------+
-//|                           export_source_rectangle_chart_id.mq5   |
-//|   Exports chart ID and rectangle names to a JSON file             |
+//|               export_source_rectangle_chart_id.mq5               |
+//|   Exports chart ID and rectangle names to a JSON file            |
 //+------------------------------------------------------------------+
 #property script_show_inputs
 #property strict
 
-input string output_filename = "chart_rectangles.json";
+input string base_filename = "chart_rectangles.json"; // base name without symbol prefix
 
 void OnStart()
 {
+   string symbol = ChartSymbol(0);               // e.g. EURUSD
+   string output_filename = symbol + "_" + base_filename;
+
    long chart_id = ChartID();
    int total_objects = ObjectsTotal(0, -1, -1); // all objects on current chart
 
    string json = "{\n";
    json += StringFormat("  \"chart_id\": %I64d,\n", chart_id);
+   json += "  \"symbol\": \"" + symbol + "\",\n";
    json += "  \"rectangles\": [";
 
    int rect_count = 0;
