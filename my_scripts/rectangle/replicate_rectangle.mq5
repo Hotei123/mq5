@@ -4,7 +4,7 @@
 #property strict
 
 // Inputs
-input long   source_chart_id_input = 0;       // Source chart ID (0 = auto-detect another chart)
+input long   source_chart_id_input = 132617308278369132; // Source chart ID (0 = auto-detect another chart)
 input string rect_name             = "r0"; // Name of the rectangle to copy
 input long   target_chart_id       = 0;       // Target chart ID (0 = current chart)
 
