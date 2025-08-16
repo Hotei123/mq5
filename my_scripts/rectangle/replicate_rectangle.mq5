@@ -36,7 +36,7 @@ bool LoadConfig(string filename)
 //+------------------------------------------------------------------+
 void OnStart()
 {
-   if(!LoadConfig("config.txt"))
+   if(!LoadConfig(ChartSymbol(0) + "_rectangles.txt"))
       return;
 
    Print("Loaded chart_id=", source_chart_id_input, " rectangle=", rect_name);
