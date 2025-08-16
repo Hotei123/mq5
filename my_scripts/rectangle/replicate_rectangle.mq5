@@ -1,67 +1,62 @@
 //+------------------------------------------------------------------+
-//| Copy rectangle from one chart to another                         |
+//|           load_rectangle_config.mq5                              |
+//|   Loads chart ID and rectangle name from a text file             |
 //+------------------------------------------------------------------+
+#property script_show_inputs
 #property strict
 
-// Inputs
-input long   source_chart_id_input = 132617308278369132; // Source chart ID (0 = auto-detect another chart)
-input string rect_name             = "r0"; // Name of the rectangle to copy
-input long   target_chart_id       = 0;       // Target chart ID (0 = current chart)
+// Variables that will be filled from the file
+long   source_chart_id_input = 0;
+string rect_name             = "";
 
-//+------------------------------------------------------------------+
+// Function to load chart ID and rectangle name from file
+bool LoadConfig(string filename)
+{
+   int handle = FileOpen(filename, FILE_READ | FILE_TXT | FILE_ANSI);
+   if(handle == INVALID_HANDLE)
+   {
+      Print("Error opening config file: ", GetLastError());
+      return false;
+   }
+
+   // First line: chart ID
+   string line1 = FileReadString(handle);
+   if(StringLen(line1) > 0)
+      source_chart_id_input = (long)StringToInteger(line1);
+
+   // Second line: rectangle name
+   string line2 = FileReadString(handle);
+   if(StringLen(line2) > 0)
+      rect_name = line2;
+
+   FileClose(handle);
+   return true;
+}
+
 void OnStart()
 {
-   long source_chart_id = source_chart_id_input; // Local copy so we can modify
-
-   // If source_chart_id not given, try to find another open chart for the same symbol
-   if(source_chart_id == 0)
+   string filename = "config.txt"; // must be inside MQL5/Files
+   if(!LoadConfig(filename))
    {
-      long chart = ChartFirst();
-      while(chart != -1)
-      {
-         if(chart != ChartID()) // not current chart
-         {
-            source_chart_id = chart;
-            break;
-         }
-         chart = ChartNext(chart);
-      }
-   }
-
-   if(source_chart_id == 0)
-   {
-      Print("No source chart found.");
+      Print("Failed to load config. Exiting.");
       return;
    }
 
-   // Read coordinates from source chart
-   datetime t1, t2;
-   double p1, p2;
-   if(ObjectFind(source_chart_id, rect_name) < 0)
+   // If chart ID is 0, auto-detect current chart
+   if(source_chart_id_input == 0)
+      source_chart_id_input = ChartID();
+
+   Print("Loaded config:");
+   Print(" Chart ID = ", source_chart_id_input);
+   Print(" Rectangle name = ", rect_name);
+
+   // Example usage: check if rectangle exists
+   if(ObjectFind(source_chart_id_input, rect_name) >= 0)
    {
-      Print("Rectangle not found on source chart.");
-      return;
+      Print("Rectangle '", rect_name, "' found on chart ", source_chart_id_input);
    }
-
-   ObjectGetInteger(source_chart_id, rect_name, OBJPROP_TIME, 0, t1);
-   ObjectGetDouble(source_chart_id, rect_name, OBJPROP_PRICE, 0, p1);
-   ObjectGetInteger(source_chart_id, rect_name, OBJPROP_TIME, 1, t2);
-   ObjectGetDouble(source_chart_id, rect_name, OBJPROP_PRICE, 1, p2);
-
-   // Create on target chart
-   string new_rect_name = rect_name + "_copy";
-   if(!ObjectCreate(target_chart_id, new_rect_name, OBJ_RECTANGLE, 0, t1, p1, t2, p2))
+   else
    {
-      Print("Error creating rectangle on target chart: ", GetLastError());
-      return;
+      Print("Rectangle '", rect_name, "' NOT found on chart ", source_chart_id_input);
    }
-
-   // Copy style
-   ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_COLOR, clrGreen);
-   ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_WIDTH, 1);
-   ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_STYLE, STYLE_SOLID);
-   ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_FILL, true);
-   ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_BACK, false);
-
-   PrintFormat("Rectangle copied from Chart ID: %I64d to Chart ID: %I64d", source_chart_id, target_chart_id);
 }
