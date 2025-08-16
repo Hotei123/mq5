@@ -85,7 +85,7 @@ void OnStart()
    }
 
    // Copy style
-   ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_COLOR, clrGreen);
+   ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_COLOR, clrMagenta);
    ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_WIDTH, 1);
    ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_STYLE, STYLE_SOLID);
    ObjectSetInteger(target_chart_id, new_rect_name, OBJPROP_FILL, true);
