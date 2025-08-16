@@ -1,52 +1,43 @@
 //+------------------------------------------------------------------+
-//|               export_source_rectangle_chart_id.mq5               |
-//|   Exports chart ID and rectangle names to a JSON file            |
+//|         export_source_rectangle_chart_id_plaintext.mq5           |
+//|   Exports chart ID and rectangle names to a text file            |
 //+------------------------------------------------------------------+
 #property script_show_inputs
 #property strict
 
-input string base_filename = "chart_rectangles.json"; // base name without symbol prefix
+input string base_filename = "chart_rectangles.txt"; // file extension is .txt
 
 void OnStart()
 {
-   string symbol = ChartSymbol(0);               // e.g. EURUSD
+   string symbol = ChartSymbol(0);               
    string output_filename = symbol + "_" + base_filename;
 
    long chart_id = ChartID();
-   int total_objects = ObjectsTotal(0, -1, -1); // all objects on current chart
+   int total_objects = ObjectsTotal(0, -1, -1); 
 
-   string json = "{\n";
-   json += StringFormat("  \"chart_id\": %I64d,\n", chart_id);
-   json += "  \"symbol\": \"" + symbol + "\",\n";
-   json += "  \"rectangles\": [";
+   // Open file for writing (ANSI text)
+   int handle = FileOpen(output_filename, FILE_WRITE | FILE_TXT | FILE_ANSI);
+   if(handle == INVALID_HANDLE)
+   {
+      Print("Error opening file for writing: ", GetLastError());
+      return;
+   }
 
-   int rect_count = 0;
+   // First line: chart ID
+   FileWriteString(handle, IntegerToString(chart_id) + "\n");
+
+   // Next lines: rectangle names
    for(int i = 0; i < total_objects; i++)
    {
       string name = ObjectName(0, i);
       if(ObjectGetInteger(0, name, OBJPROP_TYPE) == OBJ_RECTANGLE)
       {
-         if(rect_count > 0)
-            json += ", ";
-         json += StringFormat("\"%s\"", name);
-         rect_count++;
+         FileWriteString(handle, name + "\n");
       }
    }
 
-   json += "]\n}";
+   FileClose(handle);
 
-   // Save file in MQL5/Files
-   int handle = FileOpen(output_filename, FILE_WRITE | FILE_TXT | FILE_ANSI);
-   if(handle != INVALID_HANDLE)
-   {
-      FileWriteString(handle, json);
-      FileClose(handle);
-
-      string full_path = TerminalInfoString(TERMINAL_DATA_PATH) + "\\MQL5\\Files\\" + output_filename;
-      Print("Exported rectangle names to: ", full_path);
-   }
-   else
-   {
-      Print("Error opening file for writing: ", GetLastError());
-   }
+   string full_path = TerminalInfoString(TERMINAL_DATA_PATH) + "\\MQL5\\Files\\" + output_filename;
+   Print("Exported chart ID and rectangle names to: ", full_path);
 }
